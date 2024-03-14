@@ -1,4 +1,4 @@
-name: Build and Test
+name: Test
 
 on:
   push:
@@ -8,22 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy-stage:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Extract Commit SHA
-        id: extract_sha
-        run: echo "::set-output name=commit_sha::$(git rev-parse HEAD)"
-      - name: Trigger Render Deploy Hook
-        run: |
-          DEPLOY_HOOK_URL=${{ secrets.DEPLOY_HOOK_URL }}
-          COMMIT_SHA=${{ steps.extract_sha.outputs.commit_sha }}
-          curl -X POST "$DEPLOY_HOOK_URL&ref=$COMMIT_SHA"
-      - name: Wait for 3 minutes to complete deploy
-        run: sleep 180
-
   run-tests:
     needs: deploy-stage
     runs-on: windows-latest
@@ -48,13 +32,3 @@ jobs:
       run: dotnet test
       working-directory: tests
         
-  deploy-prod:
-    needs: run-tests
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Deploy to staging
-        uses: johnbeynon/render-deploy-action@v0.0.8
-        with:
-          service-id: ${{ secrets.MY_RENDER_SERVICE_ID_PROD }}
-          api-key: ${{ secrets.MY_RENDER_API_KEY }}
