@@ -9,7 +9,6 @@ on:
 
 jobs:
   run-tests:
-    needs: deploy-stage
     runs-on: windows-latest
     steps:
     - name: Checkout
